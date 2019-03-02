@@ -1,37 +1,36 @@
 package date
 
+import date.util.DayOfWeek
+import date.util.Months
 import java.util.*
+import kotlin.IllegalArgumentException
 
 
+class DateTime(private var years: Int, private var months: Int, private var seconds: Long) : AbstractDateInterface {
 
-class DateTime : AbstractDateInterface {
-
-    private var years: Int
-    private var months: Int
-    private var seconds: Int
-
-    constructor(years: Int, months: Int, seconds: Int) {
-        this.years = years
-        this.months = months
-        this.seconds = seconds
-    }
-
-
-    private val SECONDS_IN_DAY = 86400
-    private val MONTH_IN_YEAR = 12
-    private val daysInYear: Int
-        get() = if (isLoopYear(years)) 366 else 365
+    private val default20Code:Int
+        get() = (6 + years % 100 + years % 100 / 4) % 7
+    private val secondsInDay = 86400L
+    private val secInMonth: Long get() = secondsInDay * daysInMonth
+    private val monthInYear = 12
+    private val daysInYear: Int get() = if (isLoopYear(years)) 366 else 365
     private val daysInMonth: Int
         get()  {
             val days = Months.values()[months - 1].days
             return if (isLoopYear(years) && months == 2) days + 1 else days
         }
+    private val codeOfMonths: Int
+            get() {
+                val month =  Months.values().find { x -> x.ordinal == months - 1 }!!
+                return month.code
+    }
+
 
 
 
     override fun getDay(): Int {
         val result =  Math.ceil(
-                seconds.toDouble() / SECONDS_IN_DAY.toDouble()
+                seconds.toDouble() / secondsInDay.toDouble()
         )
         return result.toInt()
     }
@@ -41,80 +40,66 @@ class DateTime : AbstractDateInterface {
     override fun getYear(): Int {
         return years
     }
-
     override fun dayOfWeek(): Int {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        val codeDay = getDay()
+        val codeMonth = codeOfMonths
+        var code = (getDay() + codeOfMonths + default20Code) % 7
+        if(isLoopYear(years)) {
+            if(getDay() < 29 && getMonth() <= 2)
+                code += 1
+        }
+        return (DayOfWeek.values()[code].ordinal + 5) % 7
     }
+
     override fun validate(): Boolean {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        if (years < 0 ) return false
+        if (months > monthInYear || months < 0) return false
+        if (seconds < 0 || seconds > secondsInDay * secInMonth) return false
+        return true
     }
 
     override fun addDays(days: Int) {
-        var days = days
-
-        while (days > daysInYear) {
-            days -= daysInYear
-            addYears(1)
-        }
-
-        while (days > daysInMonth) {
-            days -= daysInMonth
-            addMonths(1)
-        }
-
-        seconds += days * SECONDS_IN_DAY
+        if(days < 0) throw IllegalArgumentException("Количество дней ($days) должно быть положительным!")
+        val seconds = days * secondsInDay
+        addSeconds(seconds)
     }
-
     override fun addMonths(months: Int) {
+        if(months < 0) throw IllegalArgumentException("Количество месяцев ($months) должно быть положительным!")
         this.months += months
 
-        years += months / MONTH_IN_YEAR
-        this.months %= MONTH_IN_YEAR;
+        while (this.months > monthInYear) {
+            this.months -= monthInYear
+            addYears(1)
+        }
     }
-
     override fun addYears(years: Int) {
+        if(years < 0) throw IllegalArgumentException("Количество лет ($years) должно быть положительным!")
         this.years += years
     }
 
     override fun getNow(): AbstractDateInterface {
+        val realSeconds = Date().time / 1000
+
         val now = DateTime(1970, 1, 0)
-        val sec = Date().time
-        var days = Math.ceil(sec.toDouble() / SECONDS_IN_DAY / 1000)
-
-        while (days > now.daysInYear) {
-            days -= now.daysInYear
-            now.addYears(1)
-        }
-        while (days > now.daysInMonth) {
-            days -= now.daysInMonth
-            now.addMonths(1)
-        }
-
-        now.seconds += (days.toInt() * SECONDS_IN_DAY)
-
+        now.addSeconds(realSeconds)
         return now
     }
-
     override fun parse(date: String): AbstractDateInterface {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
-    override fun toStringDate(): String {
-        return toString()
-    }
 
     override fun toUInt64(): Long {
-        var days = 0
-        val fake = DateTime(years, months, seconds)
-        while (fake.years > 1970) {
-            days += fake.dayInYear(fake.years - 1)
-            fake.years --
+        var result = 0L
+        for (year in 1970 until years) {
+            result += dayInYear(year)
         }
-        while (fake.months > 1) {
-            days += fake.dayInMonth(fake.months - 1)
-            fake.months --
+        for (month in 1 until months) {
+            result += dayInMonth(month)
         }
-        return (fake.seconds + days * SECONDS_IN_DAY).toLong()
+        result *= secondsInDay
+        result += seconds
+        return result
     }
 
     private fun dayInYear(year: Int): Int {
@@ -130,5 +115,24 @@ class DateTime : AbstractDateInterface {
 
     override fun toString(): String {
         return "${getDay()}/${getMonth()}/${getYear()}"
+    }
+    override fun toStringDate(): String {
+        return toString()
+    }
+
+    private fun addSeconds(i: Long) {
+        seconds += i
+        while (seconds > secondsInDay * daysInYear) {
+            seconds -= secondsInDay * daysInYear
+            addYears(1)
+        }
+        while (seconds > secondsInDay * daysInMonth) {
+            seconds -= secondsInDay * daysInMonth
+            addMonths(1)
+        }
+    }
+
+    init {
+        if (!validate()) throw IllegalArgumentException("В конструктор переданы некорректные параметры!")
     }
 }

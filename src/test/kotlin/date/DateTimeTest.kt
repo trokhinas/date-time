@@ -41,6 +41,14 @@ class DateTimeTest {
 
     @Test
     fun dayOfWeek() {
+        dateTime.addYears(30)
+//        dateTime.addMonths(6)
+//        dateTime.addDays(24)
+
+        val actual = dateTime.dayOfWeek()
+        val expected = 5
+
+        Assert.assertEquals(expected, actual)
     }
 
     @Test
