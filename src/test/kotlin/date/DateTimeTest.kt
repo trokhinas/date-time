@@ -2,8 +2,7 @@ package date
 
 import org.junit.Assert
 import org.junit.Test
-
-import org.junit.Assert.*
+import date.util.*
 import org.junit.Before
 import java.util.*
 
@@ -41,12 +40,12 @@ class DateTimeTest {
 
     @Test
     fun dayOfWeek() {
-        dateTime.addYears(30)
-//        dateTime.addMonths(6)
-//        dateTime.addDays(24)
+        dateTime.addYears(45)
+        dateTime.addMonths(11)
+        dateTime.addDays(9)
 
         val actual = dateTime.dayOfWeek()
-        val expected = 5
+        val expected = DayOfWeek.Thursday.ordinal
 
         Assert.assertEquals(expected, actual)
     }
