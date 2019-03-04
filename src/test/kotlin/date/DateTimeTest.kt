@@ -1,6 +1,6 @@
 package date
 
-import org.junit.Assert
+import org.junit.Assert.*
 import org.junit.Test
 import date.util.*
 import org.junit.Before
@@ -17,21 +17,21 @@ class DateTimeTest {
     @Test
     fun getDay() {
         var days = dateTime.getDay()
-        Assert.assertEquals(1, days)
+        assertEquals(1, days)
 
         dateTime.addDays(2);
         days = dateTime.getDay()
-        Assert.assertEquals(3, days)
+        assertEquals(3, days)
     }
 
     @Test
     fun getMonth() {
         var months = dateTime.getMonth()
-        Assert.assertEquals(1, months)
+        assertEquals(1, months)
 
         dateTime.addMonths(2);
         months = dateTime.getMonth()
-        Assert.assertEquals(3, months)
+        assertEquals(3, months)
     }
 
     @Test
@@ -47,7 +47,7 @@ class DateTimeTest {
         val actual = dateTime.dayOfWeek()
         val expected = DayOfWeek.Thursday.ordinal
 
-        Assert.assertEquals(expected, actual)
+        assertEquals(expected, actual)
     }
 
     @Test
@@ -72,11 +72,15 @@ class DateTimeTest {
         val expected = Date().time / 1000
         val actual = now.toUInt64()
 
-        Assert.assertEquals(expected, actual)
+        assertEquals(expected, actual)
     }
 
     @Test
     fun parse() {
+        var actual = dateTime.parse("2020.02.01")
+        var expected = DateTime(2020, 2, 28 * 86400 + 1)
+
+        assertTrue(actual.dateTimeCmp(expected, actual) == 0)
     }
 
     @Test

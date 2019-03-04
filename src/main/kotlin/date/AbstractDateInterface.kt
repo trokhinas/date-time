@@ -9,8 +9,14 @@ interface AbstractDateInterface {
 
     fun dateTimeCmp(a: AbstractDateInterface, b: AbstractDateInterface): Int {
         var result = 0
-        result += (a.toUInt64() - b.toUInt64()).toInt()
-
+        result += a.getYear() - b.getYear()
+        if (result == 0)
+        {
+            result += a.getMonth() - b.getMonth()
+            if(result == 0) {
+                result += a.getDay() - b.getDay()
+            }
+        }
         return result
     }
 

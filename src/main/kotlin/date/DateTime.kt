@@ -41,8 +41,6 @@ class DateTime(private var years: Int, private var months: Int, private var seco
         return years
     }
     override fun dayOfWeek(): Int {
-        val codeDay = getDay()
-        val codeMonth = codeOfMonths
         var code = (getDay() + codeOfMonths + default20Code) % 7
         if(isLoopYear(years)) {
             if(getDay() < 29 && getMonth() <= 2)
@@ -54,7 +52,7 @@ class DateTime(private var years: Int, private var months: Int, private var seco
     override fun validate(): Boolean {
         if (years < 0 ) return false
         if (months > monthInYear || months < 0) return false
-        if (seconds < 0 || seconds > secondsInDay * secInMonth) return false
+        if (seconds < 0 || seconds > secInMonth) return false
         return true
     }
 
@@ -84,8 +82,16 @@ class DateTime(private var years: Int, private var months: Int, private var seco
         now.addSeconds(realSeconds)
         return now
     }
+
+    /**
+     * парсятся только строки по шаблону yyyy/MM/dd
+     */
     override fun parse(date: String): AbstractDateInterface {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        val year = date.substring(0..3)
+        val month = date.substring(5..6)
+        val day = date.substring(8..9)
+
+        return DateTime(year.toInt(), month.toInt(), day.toInt() * secondsInDay)
     }
 
 
@@ -114,7 +120,11 @@ class DateTime(private var years: Int, private var months: Int, private var seco
     }
 
     override fun toString(): String {
-        return "${getDay()}/${getMonth()}/${getYear()}"
+        var dayStr = getDay().toString()
+        if(getDay() < 10) dayStr = "0$dayStr"
+        var monthStr = getMonth().toString()
+        if(getMonth() < 10) monthStr = "0$monthStr"
+        return "$dayStr/$monthStr/${getYear()}"
     }
     override fun toStringDate(): String {
         return toString()
@@ -135,5 +145,6 @@ class DateTime(private var years: Int, private var months: Int, private var seco
     init {
         if (!validate()) throw IllegalArgumentException("В конструктор переданы некорректные параметры!")
     }
+
 
 }
